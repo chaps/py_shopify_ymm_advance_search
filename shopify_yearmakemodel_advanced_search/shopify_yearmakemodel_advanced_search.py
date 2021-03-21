@@ -123,3 +123,39 @@ class Shopify_YMM_AS:
             },
             headers=headers
         )
+
+    def delete_ymm(self, ymm_id):
+        """
+        Given an array of a single or multiple YMM ids as string, 
+        perform a POST request to delete existent YMM entries.
+        """
+        payload = {
+            "delete_id": ymm_id
+        }
+        headers = self.build_default_headers()
+        return requests.post(
+            f"{self.service_domain}{self.ROUTES['POST_YMM']}",
+            json = payload,
+            params = {
+                "domain": self.domain,
+                "action": "delete"
+            },
+            headers = headers
+        )
+
+    def delete_all_ymms(self):
+        """ Performs a GET request to delate all YMM entries 
+        for the domain object's target domain.
+        Given the correct parameters, 
+        Returns an HTTP response with code 200
+        """
+        headers = self.build_default_headers()
+        response = requests.get(
+            f"{self.service_domain}{self.ROUTES['GET_YMM']}",
+            params={
+                "action": "delete_all",
+                "domain": self.domain
+            },
+            headers=headers
+        )
+        return response

@@ -59,6 +59,27 @@ class Shopify_YMM_AS:
             headers=headers
         )
         return response
+
+    def get_single_ymm(self, ymm_id):
+        """ Performs a GET request to obtain a single YMM entry 
+        for the domain object's target domain.
+        Given the correct parameters, 
+        Returns an HTTP response with the JSON YMM data
+        example: {"id":"18","shop_id":"49639227552",
+        "product_ids":"6074816233632,6071459348640,6071459610784","field_1":"2020","field_1_tag":"yr_2020",
+        "field_2":"model2","field_2_tag":"mk_model2","field_3":"make2","field_3_tag":"md_make2"}
+        """
+        headers = self.build_default_headers()
+        response = requests.get(
+            f"{self.service_domain}{self.ROUTES['GET_YMM']}",
+            params={
+                "action": "edit",
+                "data_id": ymm_id,
+                "domain": self.domain
+            },
+            headers=headers
+        )
+        return response
     
     def add_ymm(self, fields, prod_ids=[]):
         """
@@ -79,6 +100,31 @@ class Shopify_YMM_AS:
             json = payload,
             params = {
                 "domain": self.domain,
+                "action": "save"
+            },
+            headers = headers
+        )
+
+    def update_ymm(self, fields, ymm_id, prod_ids=[]):
+        """
+        Given an array of YMM field values, 
+        and an optional array of product ids.
+        build the fields expected payload
+        and perform a POST request to update a 
+        YMM entry, if product_ids where given, 
+        the new entry will be related to the given product_ids.
+        """
+        payload = {
+            "ymm_fields": self.build_post_fields(fields),
+            "product_ids": prod_ids
+        }
+        headers = self.build_default_headers()
+        return requests.post(
+            f"{self.service_domain}{self.ROUTES['POST_YMM']}",
+            json = payload,
+            params = {
+                "domain": self.domain,
+                "data_id": ymm_id,
                 "action": "save"
             },
             headers = headers

@@ -1,5 +1,20 @@
 """Main module."""
 import requests
+from enum import Enum  
+
+
+class SearchConditionsEnum(Enum):
+    EQUALS = "equals"
+    NOT_EQUALS = "not_equals"
+    BEGINS_WITH = "begins_with"
+    ENDS_WITH = "ends_with"
+    CONTAINS = "contains"
+    DOES_NOT_CONTAINS = "does_not_contains"
+    GREATER_THAN = "greater_than"
+    GREATER_THAN_OR_EQUAL = "greater_than_or_equal"
+    LESS_THAN = "less_than"
+    LESS_THAN_OR_EQUAL = "less_than_or_equal"
+
 
 class Shopify_YMM_AS:
 
@@ -59,6 +74,56 @@ class Shopify_YMM_AS:
             headers=headers
         )
         return response
+    
+    def search_ymms(
+        self, 
+        text_search,
+        filter_year=True,
+        filter_make=True,
+        filter_model=True,
+        page=1,
+        search_type=SearchConditionsEnum.EQUALS
+    ):
+        """ Performs a POST request to obtain all YMM entries 
+        for the domain object's target domain, that match a certain search criteria.
+        """
+        headers = self.build_default_headers()
+        payload = {}
+        payload["txt"] = text_search
+        filter_fields = []
+        if filter_year:
+            filter_fields.append("field_1")
+        if filter_make:
+            filter_fields.append("field_2")
+        if filter_model:
+            filter_fields.append("field_3")
+        payload["search_cond"] = search_type.value if type(search_type) == SearchConditionsEnum else search_type
+        payload["page"] = page
+        payload["filter_fields"] = filter_fields
+
+        response = requests.post(
+            f"{self.service_domain}{self.ROUTES['GET_YMM']}",
+            params={
+                "action": "get",
+                "domain": self.domain
+            },
+            json=payload,
+            headers=headers
+        )
+        return response
+
+    def search_ymm(self, *args, **kwargs):
+        """
+        Performs a search_ymms, returns None if no results were found
+        returns the id if only 1 result was found , or return the list of results
+        if many are found.
+        """
+        response_data = self.search_ymms(*args, **kwargs).json()
+        if response_data["total"] == 1:
+            return response_data["list"][0]["id"]
+        if response_data["total"] > 0:
+            return response_data["list"]
+        return None
 
     def get_single_ymm(self, ymm_id):
         """ Performs a GET request to obtain a single YMM entry 
